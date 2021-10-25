@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/opt/ros/melodic/include/**",
+        "/home/lattepanda/catkin_ws/src/agv/include/**",
+        "/home/lattepanda/catkin_ws/src/calculate_odom/include/**",
+        "/home/lattepanda/catkin_ws/src/odometry/include/**",
+        "/home/lattepanda/catkin_ws/src/serial/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}

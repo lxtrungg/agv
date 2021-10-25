@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+    <group ns="agv">
+        <!-- <include file="$(find rplidar_ros)/launch/rplidar.launch"/> -->
+
+        <node name="node_imu" pkg="rosserial_python" type="serial_node.py" output="screen">
+            <param name="port" value="/dev/ttyACM0"/>
+            <param name="baud" value="115200"/>
+            <remap from="/imu/rpy" to="/agv/imu/rpy"/>
+        </node>
+
+        <node name="node_uwb" pkg="agv" type="dwm1001_main.py" output="screen">
+            <param name="serial_port_name" value="/dev/ttyACM1"/>
+            <param name="serial_baud_rate" value="115200"/>
+            <remap from="/dwm1001/tag" to="/agv/uwb/tag"/>
+            <remap from="/dwm1001/anchor0" to="/agv/uwb/anchor0"/>
+            <remap from="/dwm1001/anchor1" to="/agv/uwb/anchor1"/>
+            <remap from="/dwm1001/anchor2" to="/agv/uwb/anchor2"/>
+            <remap from="/dwm1001/anchor3" to="/agv/uwb/anchor3"/>
+        </node>
+
+        <node name="node_serial" pkg="agv" type="serial_mcu.py"  output="screen">
+            <param name="serial_port_name" value="/dev/ttyUSB0"/>
+            <param name="serial_baud_rate" value="115200"/>
+        </node>
+    </group>
+</launch>
