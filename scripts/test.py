@@ -3,7 +3,7 @@ import struct
 import serial
 import rospy
 from geometry_msgs.msg import Twist
-
+import random
 v = 0
 w = 0
 cnt = 0
@@ -32,37 +32,33 @@ def subscriber_cmd_callback(cmd_data):
     global v, w
     v = cmd_data.linear.x
     w = cmd_data.angular.z
-    serClass.write_one_struct(v, w)
+    # serClass.write_one_struct(v, w)
 
 def publish_vel(value):
     vel = Twist()
     vel.linear.x = value[0]
     vel.angular.z = value[1]
-    vel_pub.publish(vel)
+    # vel_pub.publish(vel)
     
 def main():
-    global serClass, vel_pub
+    global serClass, vel_pub, v, w
     rospy.init_node('agv_serial')
-    vel_pub = rospy.Publisher('/agv/vel_pub', Twist, queue_size=10)
+    # vel_pub = rospy.Publisher('/agv/vel_pub', Twist, queue_size=10)
     rospy.Subscriber('/agv/cmd_vel', Twist, subscriber_cmd_callback)
     ser = serial.Serial(
-        port     = str(rospy.get_param('~serial_port_name', '/dev/ttyUSB0')),
-        baudrate = int(rospy.get_param('~serial_baud_rate', 115200)),
+        port     = str(rospy.get_param('~serial_port_name', '/dev/ttyUSB1')),
+        baudrate = int(rospy.get_param('~serial_baud_rate', 57600)),
         parity   = serial.PARITY_ODD,
         stopbits = serial.STOPBITS_TWO,
         bytesize = serial.EIGHTBITS)
 
-    rate = rospy.Rate(1000000)
+    rate = rospy.Rate(10)
     serClass = ReadnWriteFromSerial(ser)
     cnt = 0
     while not rospy.is_shutdown():
-        if (serClass.read_one_struct()):
-            publish_vel(serClass.value)
-            if cnt <= 5: cnt +=1
-            else:
-                cnt = 0
-                serClass.write_one_struct(v, w)
-            
+        serClass.write_one_struct(v, w)
+        # serClass.write_one_struct(0, 0)
+
         rate.sleep()
 
 if __name__ == "__main__":

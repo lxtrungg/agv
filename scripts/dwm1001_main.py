@@ -62,7 +62,7 @@ dynamicConfig_SERIAL_PORT = {"serial_port": ""}
 
 # initialize serial port connections
 serialPortDWM1001 = serial.Serial(
-    port       = str(rospy.get_param('~serial_port_name', '/dev/ttyACM1')),
+    port       = str(rospy.get_param('~serial_port_name', '/dev/ttyACM0')),
     baudrate   = int(rospy.get_param('~serial_baud_rate', 115200)),
     parity     = serial.PARITY_ODD,
     stopbits   = serial.STOPBITS_TWO,
@@ -177,14 +177,14 @@ class dwm1001_localizer:
                 # example /dwm1001/anchor0, the last digit is taken from AN0 and so on
                 pub_anchor = rospy.Publisher('/dwm1001/anchor'+str(temp_anchor_number[-1]), Anchor, queue_size=1)
                 pub_anchor.publish(anchor)
-                rospy.loginfo("Anchor: "
-                              + str(anchor.id)
-                              + " x: "
-                              + str(anchor.x)
-                              + " y: "
-                              + str(anchor.y)
-                              + " z: "
-                              + str(anchor.z))
+                # rospy.loginfo("Anchor: "
+                #               + str(anchor.id)
+                #               + " x: "
+                #               + str(anchor.x)
+                #               + " y: "
+                #               + str(anchor.y)
+                #               + " z: "
+                #               + str(anchor.z))
 
             elif 'POS' in network:
 

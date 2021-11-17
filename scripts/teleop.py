@@ -7,7 +7,8 @@ import sys, select, termios, tty
 
 LINEAR_STEP = 0.1
 ANGULAR_STEP = 0.1
-
+current_time = 0
+previous_time = 0
 class PublishThread(threading.Thread):
     def __init__(self):
         super().__init__()
@@ -35,17 +36,28 @@ class PublishThread(threading.Thread):
         self.condition.release()
 
     def run(self):
+        pass
+        # twist = Twist()
+        # while not self.done:
+        #     self.condition.acquire()
+        #     twist.linear.x = self.x
+        #     twist.linear.y = 0.0
+        #     twist.linear.z = 0.0
+        #     twist.angular.x = 0.0
+        #     twist.angular.y = 0.0
+        #     twist.angular.z = self.th
+        #     self.condition.release()
+            # self.publisher.publish(twist)
+
+    def publish(self):
         twist = Twist()
-        while not self.done:
-            self.condition.acquire()
-            twist.linear.x = self.x
-            twist.linear.y = 0.0
-            twist.linear.z = 0.0
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = self.th
-            self.condition.release()
-            self.publisher.publish(twist)
+        twist.linear.x = self.x
+        twist.linear.y = 0.0
+        twist.linear.z = 0.0
+        twist.angular.x = 0.0
+        twist.angular.y = 0.0
+        twist.angular.z = self.th
+        self.publisher.publish(twist)
 
     def stop(self):
         self.done = True
@@ -70,14 +82,17 @@ def main():
     rospy.init_node('agv_teleop')
     publish_thread = PublishThread()
 
-    linear_speed = 0.5
-    angular_speed = 1.0
+    linear_speed = 0.3
+    angular_speed = 1
     linear_vel = 0.0
     angular_vel  = 0.0
+    global current_time, previous_time
+    previous_time = rospy.Time.now()
     try:
         publish_thread.wait_for_subcribers()
         publish_thread.update(linear_vel, angular_vel)
         while True:
+            current_time = rospy.Time.now()
             key = getKey()
             if key =='w':
                 linear_vel = linear_speed
@@ -108,8 +123,11 @@ def main():
             else:
                 if (key == '\x03'):
                     break
-
+            
             publish_thread.update(linear_vel, angular_vel)
+            if ((current_time - previous_time).to_sec() >= 0.1):
+                publish_thread.publish()
+                previous_time = current_time
     finally:
         publish_thread.stop()
 
