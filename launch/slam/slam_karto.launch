@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="rvizconfig" default="$(find agv)/rviz/slam.rviz"/> 
+    <include file="$(find agv)/launch/description/urdf.launch">
+        <arg name="rvizconfig" value="$(arg rvizconfig)"/>
+    </include>
+        
+    <group ns="agv">
+        <node name="odom_pub" pkg="agv" type="odometry.py"/>
+
+        <node name="slam_karto" pkg="slam_karto" type="slam_karto" output="screen">
+            <rosparam command="load" file="$(find agv)/config/karto_params.yaml"/>
+        </node>
+    </group>
+</launch>

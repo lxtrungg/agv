@@ -1,0 +1,12 @@
+
+SBPLLatticePlanner:
+  planner_type: "ARAPlanner"
+  allocated_time: 5.0
+  initial_epsilon: 3.0
+  environment_type: "XYThetaLattice"
+  forward_search: true
+  primitive_filename: "" # Setting in launch file
+  force_scratch_limit: 500 
+  nominalvel_mpersecs: 0.3
+  timetoturn45degsinplace_secs: 1.0
+  lethal_obstacle: 20

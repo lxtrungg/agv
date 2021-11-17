@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="model" default="$(find xacro)/xacro '$(find agv)/urdf/agv.urdf.xacro'"/>
+    <param name="/agv/robot_description" command="$(arg model)"/>
+    <arg name="rvizconfig" default="$(find agv)/rviz/urdf.rviz"/>   
+
+    <group ns="agv">
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+            <param name="rate" value="100"/>
+        </node>
+
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+            <param name="publish_frequency" value="100"/>
+        </node>
+        
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+    </group> 
+</launch>

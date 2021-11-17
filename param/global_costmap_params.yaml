@@ -1,0 +1,13 @@
+global_costmap:
+  plugins:
+    - {name: static_layer,    type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+  update_frequency: 5.0
+  publish_frequency: 0.0
+  height: 20.0
+  width: 20.0
+  origin_x: 0.0
+  origin_y: 0.0
+  resolution: 0.025
+  track_unknown_space: true

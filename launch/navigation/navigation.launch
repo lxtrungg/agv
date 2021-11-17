@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="rvizconfig" default="$(find agv)/rviz/navigation.rviz"/> 
+    <arg name="use_amcl" default="true"/>
+    <arg name="map_file" default="$(find agv)/maps/map1.yaml" if="$(arg use_amcl)"/>
+    
+    <include file="$(find agv)/launch/description/urdf.launch">
+        <arg name="rvizconfig" value="$(arg rvizconfig)"/>
+    </include>
+      
+    <group ns="agv">
+        <node name="odom_pub" pkg="agv" type="odometry.py"/>      
+
+        <group if="$(arg use_amcl)">
+            <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
+            
+            <include file="$(find agv)/launch/navigation/amcl.launch"/>
+        </group>
+
+        <group unless="$(arg use_amcl)">
+            <node name="slam_karto" pkg="slam_karto" type="slam_karto" output="screen">
+                <rosparam command="load" file="$(find agv)/config/karto_params.yaml"/>
+            </node>
+        </group>
+        
+        <include file="$(find agv)/launch/navigation/move_base.launch"/>
+    </group>
+</launch>

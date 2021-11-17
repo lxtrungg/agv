@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<robot name="agv" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="PI" value="3.1415926535897931"/>
+
+    <xacro:property name="body_length" value="0.3"/>
+    <xacro:property name="body_width" value="0.4"/>
+    <xacro:property name="body_height" value="0.203"/>
+    <xacro:property name="body_mass" value="12"/>
+    
+    <xacro:property name="wheel_radius" value="0.072"/>
+    <xacro:property name="wheel_width" value="0.04"/>
+    <xacro:property name="wheel_mass" value="0.4"/>
+    <xacro:property name="wheel_separation" value="0.46"/>
+
+    <xacro:include filename="$(find agv)/urdf/macros.xacro"/>
+    <xacro:include filename="$(find agv)/urdf/materials.xacro"/>
+    
+    <link name="base_footprint"/>
+    
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin xyz="0.0 0.0 ${wheel_radius}" rpy="0.0 0.0 0.0"/>
+    </joint>
+
+    <!-- Chassis -->
+    <link name="base_link">
+        <inertial>
+            <origin xyz="0.2055 0.0 -0.037" rpy="0 0 0"/>
+            <mass value="${body_mass}"/>
+            <xacro:box_inertia m="${body_mass}" l="${body_length}" w="${body_width}" h="${body_height}"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0.2055 0.0 -0.037" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://agv/meshs/body.STL"/>
+            </geometry>
+            <material name='blue'/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.2055 0.0 -0.037" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://agv/meshs/body.STL"/>
+            </geometry>
+        </collision>
+    </link>
+    <!-- End Chassis -->
+
+    <!-- Wheel -->
+    <xacro:wheel name="left">
+        <origin xyz="0.0 0.23 0.0" rpy="0 0 0"/>
+    </xacro:wheel>
+
+    <xacro:wheel name="right">
+        <origin xyz="0.0 -0.23 0.0" rpy="0 0 0"/>
+    </xacro:wheel>
+
+    <link name="wheel_caster_link"/>
+    
+    <joint name="wheel_caster_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="wheel_caster_link"/>
+        <origin xyz="0.15 0.0 -0.055" rpy="0.0 0.0 0.0"/>
+    </joint>
+    <!-- End Wheel -->
+
+    <!-- Lidar -->
+    <link name="base_scan">
+        <inertial>
+            <origin xyz="0.01 0.075 -0.04" rpy="${PI/2} 0.0 0.0"/>
+            <mass value="0.114" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0.01 0.075 -0.04" rpy="${PI/2} 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://agv/meshs/rplidarA2M7.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="grey"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.01 0.075 -0.04" rpy="${PI/2} 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://agv/meshs/rplidarA2M7.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+    
+    <joint name="scan_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="base_scan"/>
+        <origin xyz="-0.01 0.0 ${body_height}" rpy="0.0 0.0 0.0"/>
+    </joint>
+    <!-- End Lidar -->
+
+    <!-- Imu -->
+    <link name="imu_link"/>
+    
+    <joint name="imu_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </joint>
+    <!-- End IMU -->
+
+    <!-- UWB -->
+    <link name="uwb_link">
+        <inertial>
+            <origin xyz="-0.01 0.024 -0.08" rpy="${PI/2} 0.0 0.0"/>
+            <mass value="0.1" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+
+        <visual>
+            <origin xyz="-0.01 0.024 -0.08" rpy="${PI/2} 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://agv/meshs/uwb.STL" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+
+        <collision>
+            <origin xyz="-0.01 0.024 -0.08" rpy="${PI/2} 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://agv/meshs/uwb.STL" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="uwb_tag_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="uwb_link"/>
+        <origin xyz="-0.105 0.0 0.18" rpy="0.0 0.0 0.0"/>
+    </joint>
+    <!-- End UWB -->
+    
+</robot>

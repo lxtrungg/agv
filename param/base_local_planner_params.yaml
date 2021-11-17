@@ -1,0 +1,39 @@
+TrajectoryPlannerROS:
+# Robot Configuration Parameters
+  acc_lim_x: 0.7
+  acc_lim_theta: 0.8
+
+  max_vel_x: 0.25
+  min_vel_x: 0.13
+
+  max_vel_theta:  1.0
+  min_vel_theta: -1.0
+  min_in_place_vel_theta: 0.6
+  
+  escape_vel: -0.15
+  holonomic_robot: false
+
+# Goal Tolerance Parameters
+  yaw_goal_tolerance: 0.2
+  xy_goal_tolerance: 0.2
+  latch_xy_goal_tolerance: false
+
+# Trajectory Scoring Parameters
+  meter_scoring: true
+  pdist_scale : 0.6
+  gdist_scale : 0.8
+  occdist_scale: 0.2
+  heading_lookahead: 0.5
+  heading_scoring: false
+  heading_scoring_timestep: 0.8
+  dwa: true
+  publish_cost_grid_pc: true
+  global_frame_id: map
+
+# Oscillation Prevention Parameters
+  oscillation_reset_dist: 0.05
+  escape_reset_dist: 0.1
+  escape_reset_theta: 0.1
+
+# Global Plan Parameters
+  prune_plan: true

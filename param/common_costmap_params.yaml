@@ -1,0 +1,31 @@
+global_frame: map
+robot_base_frame: base_footprint
+transform_tolerance: 0.5
+footprint: [[-0.12, -0.25], [0.23, -0.25], [0.23, 0.25], [-0.12, 0.25]]
+footprint_padding: 0.01
+always_send_full_costmap: false
+subscribe_to_updates: true
+static_layer:
+  enable: true
+  map_topic: /agv/map
+  track_unknown_space: true
+obstacle_layer:
+  enabled: true
+  obstacle_range: 4.0
+  raytrace_range: 5.0
+  track_unknown_space: true
+  footprint_clearing_enabled: true
+  combination_method: 1
+  observation_sources: laser_scan_sensor
+  laser_scan_sensor: {sensor_frame: base_scan,
+                      data_type: LaserScan, 
+                      topic: /agv/scan, 
+                      marking: true, 
+                      clearing: true,
+                      expected_update_rate: 8.0,
+                      obstacle_range: 3.5,
+                      raytrace_range: 4.5}
+inflation_layer:
+  enabled: true 
+  inflation_radius: 0.3
+  cost_scaling_factor: 10.0
