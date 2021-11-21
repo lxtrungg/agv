@@ -1,26 +1,31 @@
 <?xml version="1.0"?>
 <launch>
     <!-- Global -->
+    <arg name="use_GLOBAL" default="true"/>
     <arg name="use_SBPL" default="false"/>
-    <arg name="use_Global" default="true"/>
     <!-- Local -->
-    <arg name="use_DWA" default="false"/>
-    <arg name="use_TEB" default="true"/>
+    <arg name="use_BASE" default="false"/>
+    <arg name="use_DWA" default="true"/>
+    <arg name="use_TEB" default="false"/>
+    <arg name="use_MPC" default="false"/>
     
     <arg name="base_global_planner" default="SBPLLatticePlanner" if="$(arg use_SBPL)"/>
-    <arg name="base_global_planner" default="global_planner/GlobalPlanner" if="$(arg use_Global)"/>
-    <!-- <arg name="base_local_planner" default="base_local_planner/TrajectoryPlannerROS" unless="$(eval arg('use_DWA') and arg ('use_TEB'))"/> -->
+    <arg name="base_global_planner" default="global_planner/GlobalPlanner" if="$(arg use_GLOBAL)"/>
+    <arg name="base_local_planner" default="base_local_planner/TrajectoryPlannerROS" if="$(arg use_BASE)"/>
     <arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS" if="$(arg use_DWA)"/>
     <arg name="base_local_planner" default="teb_local_planner/TebLocalPlannerROS" if="$(arg use_TEB)"/>
+    <arg name="base_local_planner" default="mpc_local_planner/MpcLocalPlannerROS" if="$(arg use_MPC)"/>
 
     <node name="move_base" pkg="move_base" type="move_base" respawn="false" output="screen">
         <param name="base_global_planner" value="$(arg base_global_planner)"/>
         <param name="base_local_planner" value="$(arg base_local_planner)"/>
         <param name="SBPLLatticePlanner/primitive_filename" value="$(find agv)/matlab/mprim/agv.mprim" if="$(arg use_SBPL)"/>
         <rosparam command="load" file="$(find agv)/param/sbpl_global_planner_params.yaml" if="$(arg use_SBPL)"/>
+        <rosparam command="load" file="$(find agv)/param/base_local_planner_params.yaml" if="$(arg use_BASE)"/> 
         <rosparam command="load" file="$(find agv)/param/dwa_local_planner_params.yaml" if="$(arg use_DWA)"/>
         <rosparam command="load" file="$(find agv)/param/teb_local_planner_params.yaml" if="$(arg use_TEB)"/>
-        <rosparam command="load" file="$(find agv)/param/base_local_planner_params.yaml" unless="$(eval arg('use_DWA') and arg ('use_TEB'))"/> 
+        <rosparam command="load" file="$(find agv)/param/mpc_local_planner_params.yaml" if="$(arg use_MPC)"/>
+        <rosparam command="load" file="$(find agv)/param/costmap_converter_params.yaml" if="$(arg use_MPC)"/>
         <rosparam command="load" file="$(find agv)/param/common_costmap_params.yaml" ns="global_costmap"/>
         <rosparam command="load" file="$(find agv)/param/common_costmap_params.yaml" ns="local_costmap"/>
         <rosparam command="load" file="$(find agv)/param/global_costmap_params.yaml"/>

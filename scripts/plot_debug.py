@@ -133,15 +133,15 @@ def plot():
     plt.grid('-')
     linewidth = 1.3
 
-    plt.plot(x_UWB[0, 1:].flatten(), x_UWB[1, 1:].flatten(), '--g', linewidth = linewidth, label = 'xy_UWB')
+    # plt.plot(x_UWB[0, 1:].flatten(), x_UWB[1, 1:].flatten(), '--g', linewidth = linewidth, label = 'xy_UWB')
 
     plt.plot(x_DR[0, 1:].flatten(), x_DR[1, 1:].flatten(), '-.y', linewidth = linewidth, label = 'xy_DR')
 
-    # plt.plot(x_True[0, 1:].flatten(), x_True[1, 1:].flatten(), '-r', linewidth = linewidth, label = 'xy_True')
+    plt.plot(x_True[0, 1:].flatten(), x_True[1, 1:].flatten(), '-r', linewidth = linewidth, label = 'xy_True')
 
     plt.plot(x_AMCL[0, 1:].flatten(), x_AMCL[1, 1:].flatten(), ':c', linewidth = linewidth, label = 'xy_AMCL')
 
-    plt.plot(x_EKF[0, 1:].flatten(), x_EKF[1, 1:].flatten(), '-m', linewidth = linewidth, label = 'xy_EKF')
+    # plt.plot(x_EKF[0, 1:].flatten(), x_EKF[1, 1:].flatten(), '-m', linewidth = linewidth, label = 'xy_EKF')
 
     # plt.plot(x_EnKF[0, 1:].flatten(), x_EnKF[1, 1:].flatten(), '-k', linewidth = linewidth, label = 'xy_EnKF')
 
@@ -158,8 +158,8 @@ def plot():
     
     plt.plot(np.rad2deg(th_IMU), '-g', linewidth = linewidth, label='yaw_IMU')
     plt.plot(np.rad2deg(x_DR[2, 1:].flatten()), '-y', linewidth = linewidth, label='yaw_DR')
-    # plt.plot(np.rad2deg(x_True[2, 1:].flatten()), '-r', linewidth = linewidth, label='yaw_True')
-    plt.plot(np.rad2deg(x_EKF[2, 1:].flatten()), '-m', linewidth = linewidth, label='yaw_EKF')
+    plt.plot(np.rad2deg(x_True[2, 1:].flatten()), '-r', linewidth = linewidth, label='yaw_True')
+    # plt.plot(np.rad2deg(x_EKF[2, 1:].flatten()), '-m', linewidth = linewidth, label='yaw_EKF')
     # plt.plot(np.rad2deg(x_EnKF[2, 1:].flatten()), '-k', linewidth = linewidth, label='yaw_EnKF')
     # plt.plot(np.rad2deg(x_UKF[2, 1:].flatten()), '-b', linewidth = linewidth, label='yaw_UKF')
     plt.legend(loc='upper right')
@@ -167,10 +167,10 @@ def plot():
 
 def main():
     rospy.init_node('node_debug')
-    rospy.Subscriber('/agv/uwb/tag', Tag, subscriber_uwb_callback)
+    # rospy.Subscriber('/agv/uwb/tag', Tag, subscriber_uwb_callback)
     rospy.Subscriber('/agv/amcl_pose', PoseWithCovarianceStamped, subscriber_amcl_callback)
     rospy.Subscriber('/agv/odom', Odometry, subscriber_odom_callback)
-    rospy.Subscriber('/agv/odom_ekf', Odometry, subscriber_odom_ekf_callback)
+    # rospy.Subscriber('/agv/odom_ekf', Odometry, subscriber_odom_ekf_callback)
     # rospy.Subscriber('/my_robot/odom_enkf', Odometry, subscriber_odom_enkf_callback)
     # rospy.Subscriber('/my_robot/odom_ukf', Odometry, subscriber_odom_ukf_callback)
     # rospy.Subscriber('/my_robot/imu/rpy/filtered', Vector3Stamped, subscriber_imu_callback)

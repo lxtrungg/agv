@@ -82,8 +82,8 @@ def main():
     rospy.init_node('node_teleop')
     publish_thread = PublishThread()
 
-    linear_speed = 0.2
-    angular_speed = 0.6
+    linear_speed = 0.3
+    angular_speed = 1
     linear_vel = 0.0
     angular_vel  = 0.0
     global current_time, previous_time

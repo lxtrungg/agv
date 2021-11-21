@@ -1,10 +1,10 @@
 TrajectoryPlannerROS:
 # Robot Configuration Parameters
-  acc_lim_x: 0.7
-  acc_lim_theta: 0.8
+  acc_lim_x: 2.0
+  acc_lim_theta: 1.6
 
-  max_vel_x: 0.25
-  min_vel_x: 0.13
+  max_vel_x: 0.3
+  min_vel_x: 0.15
 
   max_vel_theta:  1.0
   min_vel_theta: -1.0
@@ -15,7 +15,7 @@ TrajectoryPlannerROS:
 
 # Goal Tolerance Parameters
   yaw_goal_tolerance: 0.2
-  xy_goal_tolerance: 0.2
+  xy_goal_tolerance: 0.1
   latch_xy_goal_tolerance: false
 
 # Trajectory Scoring Parameters
@@ -28,7 +28,7 @@ TrajectoryPlannerROS:
   heading_scoring_timestep: 0.8
   dwa: true
   publish_cost_grid_pc: true
-  global_frame_id: map
+  global_frame_id: odom
 
 # Oscillation Prevention Parameters
   oscillation_reset_dist: 0.05

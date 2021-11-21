@@ -1,4 +1,3 @@
-
 SBPLLatticePlanner:
   planner_type: "ARAPlanner"
   allocated_time: 5.0
