@@ -42,10 +42,10 @@ class FusionEKF(object):
         self.u_w = w
         self.t = t
 
-    def predict_update(self, z, u, dt):
-        self.subs[self.x_x] = self.x[0,0]
-        self.subs[self.x_y] = self.x[1,0]
-        self.subs[self.x_theta] = self.x[2, 0]
+    def predict_update(self, x, P, z, u, dt):
+        self.subs[self.x_x] = x[0,0]
+        self.subs[self.x_y] = x[1,0]
+        self.subs[self.x_theta] = x[2, 0]
         self.subs[self.u_v] = u[0, 0]
         self.subs[self.u_w] = u[1, 0]
         self.subs[self.t] = dt
@@ -56,8 +56,6 @@ class FusionEKF(object):
         Q = self.Q
         R = self.R
         I = self.I
-        x = self.x
-        P = self.P
 
         #predict step
         fxu = np.array(self.fxu.evalf(subs=self.subs)).astype(float)
@@ -80,7 +78,7 @@ class FusionEKF(object):
         I_KH = I - self.K @ H
         self.P = I_KH @ P @ I_KH.T + self.K @ R @ self.K.T
         
-        return self.x
+        return self.x, self.P
 
     def residual(self, a, b):
         y = a - b

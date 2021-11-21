@@ -14,10 +14,10 @@ from filter.fusionEKF import FusionEKF
 pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
 vel = {'v': 0.0, 'w': 0.0}
 allow_initialpose_pub = False
-imu_done = uwb_done = False
+uwb_done = False
+ekf_done = False
 first_scan = False
-ready_to_pub = False
-
+sub_data = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
 def publish_odometry(position, rotation):
     odom = Odometry()
     odom.header.stamp = rospy.Time.now()
@@ -50,31 +50,9 @@ def publisher_initialpose(position, rotation):
     initialpose_pub.publish(initialpose)
 
 def subscriber_uwb_callback(uwb_data):
-    global previous_time, first_scan, ready_to_pub, pose, uwb_done
-    current_time = rospy.Time.now()
-    dt = (current_time - previous_time).to_sec()
-    previous_time = current_time
-
-    if not first_scan:
-        if not imu_done:
-            return
-        first_scan = True
-        ekf_uwb.x = np.array([[uwb_data.x], [uwb_data.y], [imu_data_yaw]])
-        return
-
-    if dim_z == 1:
-        z = np.array([imu_data_yaw])
-    elif dim_z == 2:
-        z = np.array([[uwb_data.x], [uwb_data.y]])
-    else:
-        z = np.array([[uwb_data.x], [uwb_data.y], [imu_data_yaw]])
-        
-    u = np.array([[vel['v']], [vel['w']]])
-    x_posterior = ekf_uwb.predict_update(z, u, dt)
-    pose['x']   = x_posterior[0,0]
-    pose['y']   = x_posterior[1,0]
-    pose['yaw'] = x_posterior[2,0]
-
+    global sub_data, uwb_done
+    sub_data['x'] = uwb_data.x
+    sub_data['y'] = uwb_data.y
     uwb_done = True
 
 def subscriber_vel_callback(vel_data):
@@ -83,9 +61,9 @@ def subscriber_vel_callback(vel_data):
     vel['w'] = vel_data.angular.z
 
 def subscriber_imu_callback(imu_data):
-    global imu_data_yaw, imu_done
-    imu_data_yaw = imu_data.z
-    imu_done = True
+    global sub_data
+    sub_data['yaw'] = imu_data.z
+    compute_ekf_localization()
 
 def subcriber_amcl_callback(amcl_data):
     global allow_initialpose_pub
@@ -95,6 +73,33 @@ def subcriber_amcl_callback(amcl_data):
     yaw = PyKDL.Rotation.Quaternion(rot.x, rot.y, rot.z, rot.w).GetRPY()[2]
     if abs(x - pose['x']) > 0.03 or abs(y - pose['y']) > 0.03 or abs(yaw - pose['yaw']) > np.deg2rad(1):
         allow_initialpose_pub = True
+
+def compute_ekf_localization():
+    global previous_time, first_scan, pose, uwb_done, ekf_done
+    current_time = rospy.Time.now()
+    dt = (current_time - previous_time).to_sec()
+    previous_time = current_time
+
+    # if not first_scan:
+    #     if not imu_done:
+    #         return
+    #     first_scan = True
+    #     ekf_all.x = np.array([[uwb_data.x], [uwb_data.y], [imu_data_yaw]])
+    #     return
+
+    u = np.array([[vel['v']], [vel['w']]])
+    if not uwb_done:
+        z = np.array([sub_data['yaw']])
+        x_posterior, P_posterior = ekf_imu.predict_update(x_posterior, P_posterior, z, u, dt)
+    else:
+        z = np.array([[sub_data['x']], [sub_data['y']], [sub_data['yaw']]])
+        x_posterior, P_posterior = ekf_all.predict_update(x_posterior, P_posterior, z, u, dt)
+        uwb_done = False
+
+    pose['x']   = x_posterior[0,0]
+    pose['y']   = x_posterior[1,0]
+    pose['yaw'] = x_posterior[2,0]
+    ekf_done = True
 
 def main():
     rospy.init_node('node_ekf_localization')
@@ -115,43 +120,44 @@ def main():
 
     rospy.loginfo('Start node ekf_localization')
     rate = rospy.Rate(50)
-
     while not rospy.is_shutdown():
-        if imu_done and uwb_done:
+        if ekf_done:
             position = (pose['x'], pose['y'], pose['yaw'])
             rotation = PyKDL.Rotation.RPY(0, 0, pose['yaw']).GetQuaternion()
             publish_odometry(position, rotation)
             # transform_odometry(position, rotation)
-
-            if allow_initialpose_pub:
-                allow_initialpose_pub = False
+            # if allow_initialpose_pub:
+            #     allow_initialpose_pub = False
                 # publisher_initialpose(position, rotation)
             rospy.loginfo(pose)
         rate.sleep()
     
 if __name__ =='__main__':
+    dim_x = 3
     std_x = 0.15
     std_y = 0.15
     std_theta = deg2rad(1)
     std_v = 0.03
     std_w = 0.02
+    P = np.diag([.01, .01, .001])**2
+    Q = np.diag([std_v, std_w])**2
 
-    dim_x = 3
-    dim_z = 3
-    #UWB+IMU
-    ekf_uwb = FusionEKF(dim_x=dim_x, dim_z=3)
-    ekf_uwb.P = np.diag([.01, .01, .001])
-    ekf_uwb.Q = np.diag([std_v, std_w])**2
-    if dim_z == 1:
-        ekf_uwb.R = np.diag([std_theta])**2
-    elif dim_z == 2:
-        ekf_uwb.R = np.diag([std_x, std_y])**2
-    else:
-        ekf_uwb.R = np.diag([std_x, std_y, std_theta])**2
-    
     #IMU
     ekf_imu = FusionEKF(dim_x=dim_x, dim_z=1)
-    ekf_imu.P = np.diag([.01, .01, .001])
+    ekf_imu.P = P
+    ekf_imu.Q = Q
     ekf_imu.R = np.diag([std_theta])**2
-    ekf_imu.Q = np.diag([std_v, std_w])**2
+
+    #UWB
+    ekf_uwb = FusionEKF(dim_x=dim_x, dim_z=2)
+    ekf_uwb.P = P
+    ekf_uwb.Q = Q
+    ekf_uwb.R = np.diag([std_x, std_y])**2
+    
+    #UWB+IMU
+    ekf_all = FusionEKF(dim_x=dim_x, dim_z=3)
+    ekf_all.P = P
+    ekf_all.Q = Q
+    ekf_all.R = np.diag([std_x, std_y, std_theta])**2
+
     main()

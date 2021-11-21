@@ -163,6 +163,9 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/odometry.py
+  scripts/teleop.py
+  scripts/serial_mcu.py
+  scripts/dwm1001_main.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
