@@ -18,6 +18,7 @@ uwb_done = False
 ekf_done = False
 first_scan = False
 sub_data = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
+
 def publish_odometry(position, rotation):
     odom = Odometry()
     odom.header.stamp = rospy.Time.now()
@@ -63,7 +64,7 @@ def subscriber_vel_callback(vel_data):
 def subscriber_imu_callback(imu_data):
     global sub_data
     sub_data['yaw'] = imu_data.z
-    compute_ekf_localization()
+    # compute_ekf_localization()
 
 def subcriber_amcl_callback(amcl_data):
     global allow_initialpose_pub
@@ -76,6 +77,7 @@ def subcriber_amcl_callback(amcl_data):
 
 def compute_ekf_localization():
     global previous_time, first_scan, pose, uwb_done, ekf_done
+    global x_posterior, P_posterior
     current_time = rospy.Time.now()
     dt = (current_time - previous_time).to_sec()
     previous_time = current_time
@@ -121,6 +123,7 @@ def main():
     rospy.loginfo('Start node ekf_localization')
     rate = rospy.Rate(50)
     while not rospy.is_shutdown():
+        compute_ekf_localization()
         if ekf_done:
             position = (pose['x'], pose['y'], pose['yaw'])
             rotation = PyKDL.Rotation.RPY(0, 0, pose['yaw']).GetQuaternion()
@@ -159,5 +162,8 @@ if __name__ =='__main__':
     ekf_all.P = P
     ekf_all.Q = Q
     ekf_all.R = np.diag([std_x, std_y, std_theta])**2
+
+    x_posterior = np.zeros((3, 1))
+    P_posterior = P
 
     main()
