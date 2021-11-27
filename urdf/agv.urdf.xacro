@@ -94,7 +94,7 @@
     <joint name="scan_joint" type="fixed">
         <parent link="base_link"/>
         <child link="base_scan"/>
-        <origin xyz="-0.01 0.0 ${body_height + 0.09}" rpy="0.0 0.0 0.0"/>
+        <origin xyz="-0.03 0.0 ${body_height + 0.09}" rpy="0.0 0.0 0.0"/>
     </joint>
     <!-- End Lidar -->
 
@@ -135,7 +135,7 @@
     <joint name="uwb_tag_joint" type="fixed">
         <parent link="base_link"/>
         <child link="uwb_link"/>
-        <origin xyz="0.0 0.0 0.23" rpy="0.0 0.0 0.0"/>
+        <origin xyz="-0.01 0.0 0.23" rpy="0.0 0.0 0.0"/>
     </joint>
     <!-- End UWB -->
     
