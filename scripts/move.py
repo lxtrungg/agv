@@ -9,8 +9,8 @@ import PyKDL
 vel = {'v': 0.0 , 'w': 0.0}
 
 rec_A_pose = {'x': 0.0, 'y': 0.0, 'yaw': 0}
-rec_B_pose = {'x': 2.0, 'y': 0.0, 'yaw': pi/2}
-rec_C_pose = {'x': 2.0, 'y': 1.6, 'yaw': pi}
+rec_B_pose = {'x': 1.6, 'y': 0.0, 'yaw': pi/2}
+rec_C_pose = {'x': 1.6, 'y': 1.6, 'yaw': pi}
 rec_D_pose = {'x': 0.0, 'y': 1.6, 'yaw': -pi/2}
 phi = atan(1/7)
 num_A_pose = {'x': 3.5, 'y': 3.5, 'yaw': -pi/2}

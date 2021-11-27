@@ -1,4 +1,6 @@
 global_costmap:
+  global_frame: map
+  robot_base_frame: base_footprint
   plugins:
     - {name: static_layer,    type: "costmap_2d::StaticLayer"}
     - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}

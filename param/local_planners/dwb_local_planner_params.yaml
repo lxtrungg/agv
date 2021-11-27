@@ -1,0 +1,66 @@
+LocalPlannerAdapter:
+  planner_name: dwb_local_planner::DWBLocalPlanner
+DWBLocalPlanner:
+# Robot Configuration Parameters
+  acc_lim_x: 1.0
+  acc_lim_y: 0.0
+  acc_lim_theta: 1.0
+  decel_lim_x: -1.0
+  decel_lim_y: 0.0
+  decel_lim_theta: -1.0
+  max_vel_trans:  0.3
+  min_vel_trans:  0.15
+
+  max_vel_x: 0.3
+  min_vel_x: -0.15
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+  max_vel_theta: 1.0
+  min_vel_theta: 0.6
+
+# Goal Tolerance
+  yaw_goal_tolerance: 0.1
+  xy_goal_tolerance: 0.1
+  latch_xy_goal_tolerance: false
+  transform_tolerance: 0.2
+  short_circuit_trajectory_evaluation: true
+  trans_stopped_velocity: 0.15
+  slowing_factor: 5.0
+  lookahead_time: -1.0
+  stateful: true
+# Forward Simulation Parameters
+  sim_time: 0.3
+  linear_granularity: 0.025
+  angular_granularity: 0.1
+  vx_samples: 20
+  vy_samples: 0
+  vtheta_samples: 40
+
+# Trajectory Scoring Parameters
+  critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "ObstacleFootprint", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+  RotateToGoal.scale: 32.0
+  Oscillation.oscillation_reset_angle: 0.1
+  Oscillation.oscillation_reset_dist: 0.05
+  Oscillation.oscillation_reset_time: -1.0
+  Oscillation.scale: 0.0
+  BaseObstacle.scale: 0.0
+  ObstacleFootprint.scale: 0.02
+  GoalAlign.scale: 0.0
+  PathAlign.scale: 0.0
+  PathDist.scale: 32.0
+  GoalDist.scale: 24.0
+
+  path_distance_bias: 32.0
+  goal_distance_bias: 24.0
+  occdist_scale: 1.0
+  forward_point_distance: 0.3
+  stop_time_buffer: 0.2
+  scaling_speed: 0.25
+  max_scaling_factor: 0.2
+  publish_cost_grid: true
+
+# Oscillation Prevention Parameters
+  oscillation_reset_dist: 0.05
+
+# Global Plan Parameters
+  prune_plan: true

@@ -131,7 +131,7 @@ class dwm1001_localizer:
             serialPortDWM1001.write(DWM1001_API_COMMANDS.RESET)
             serialPortDWM1001.write(DWM1001_API_COMMANDS.SINGLE_ENTER)
             rate.sleep()
-            if "reset" in serialReadLine:
+            if "reset".encode() in serialReadLine:
                 rospy.loginfo("succesfully closed ")
                 serialPortDWM1001.close()
 
@@ -145,7 +145,7 @@ class dwm1001_localizer:
 
         """
 
-        arrayFromUSBFormatted = [x.strip() for x in dataFromUSB.strip().split(',')]
+        arrayFromUSBFormatted = [x.strip() for x in dataFromUSB.strip().split(','.encode())]
 
         return arrayFromUSBFormatted
 
@@ -163,7 +163,7 @@ class dwm1001_localizer:
         for network in networkDataArray:
 
             # check if there is any entry starting with AN, which means there is an anchor
-            if 'AN' in network:
+            if 'AN'.encode() in network:
                 # get the number after'AN' which we will use to pubblish topics, example /dwm1001/anchor1
                 temp_anchor_number = networkDataArray[networkDataArray.index(network)]
                 # construct the object for anchor(s)
@@ -186,7 +186,7 @@ class dwm1001_localizer:
                 #               + " z: "
                 #               + str(anchor.z))
 
-            elif 'POS' in network:
+            elif 'POS'.encode() in network:
 
                 # construct the object for the tag
                 tag = Tag(float(networkDataArray[networkDataArray.index(network) + 1]),

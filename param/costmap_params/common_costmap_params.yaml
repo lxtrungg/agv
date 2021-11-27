@@ -1,9 +1,7 @@
-global_frame: map
-robot_base_frame: base_footprint
 transform_tolerance: 2.0
 footprint: [[-0.12, -0.25], [0.23, -0.25], [0.23, 0.25], [-0.12, 0.25]]
 footprint_padding: 0.01
-robot_radius: 0.25
+robot_radius: 0.5
 always_send_full_costmap: false
 subscribe_to_updates: true
 static_layer:
@@ -23,7 +21,7 @@ obstacle_layer:
                       topic: /agv/scan, 
                       marking: true, 
                       clearing: true,
-                      expected_update_rate: 5,
+                      expected_update_rate: 10.0,
                       obstacle_range: 3.5,
                       raytrace_range: 4.5}
 inflation_layer:

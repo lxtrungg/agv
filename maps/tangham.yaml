@@ -1,4 +1,4 @@
-image: /home/ubuntu/catkin_ws/src/agv/maps/tangham.pgm
+image: /home/lattepanda/catkin_ws/src/agv/maps/tangham.pgm
 resolution: 0.025000
 origin: [-4.160580, -4.785105, 0.000000]
 negate: 0

@@ -1,0 +1,12 @@
+GlocalPlannerAdapter:
+  planner_name: global_planner::DluxGlobalPlanner
+DluxGlobalPlanner:
+  potential_calculator: dlux_plugins::AStar
+  traceback: dlux_plugins::GradientPath
+  publish_potential: true
+  print_statistics: false
+  neutral_cost: 66
+  scale: 3.0
+  unknown_interpretation: "expensive"
+  path_caching: true
+  improvement_threshold: 1.0

@@ -1,4 +1,6 @@
 local_costmap:
+  global_frame: map
+  robot_base_frame: base_footprint
   plugins:
     - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}
     - {name: inflation_layer, type: "costmap_2d::InflationLayer"}

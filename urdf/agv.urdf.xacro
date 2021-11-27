@@ -94,7 +94,7 @@
     <joint name="scan_joint" type="fixed">
         <parent link="base_link"/>
         <child link="base_scan"/>
-        <origin xyz="-0.01 0.0 ${body_height}" rpy="0.0 0.0 0.0"/>
+        <origin xyz="-0.01 0.0 ${body_height + 0.09}" rpy="0.0 0.0 0.0"/>
     </joint>
     <!-- End Lidar -->
 
@@ -111,13 +111,13 @@
     <!-- UWB -->
     <link name="uwb_link">
         <inertial>
-            <origin xyz="-0.01 0.024 -0.08" rpy="${PI/2} 0.0 0.0"/>
+            <origin xyz="0.0105 -0.024 -0.06" rpy="${PI/2} 0.0 ${PI}"/>
             <mass value="0.1" />
             <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
         </inertial>
 
         <visual>
-            <origin xyz="-0.01 0.024 -0.08" rpy="${PI/2} 0.0 0.0"/>
+            <origin xyz="0.0105 -0.024 -0.06" rpy="${PI/2} 0.0 ${PI}"/>
             <geometry>
                 <mesh filename="package://agv/meshs/uwb.STL" scale="0.001 0.001 0.001"/>
             </geometry>
@@ -125,7 +125,7 @@
         </visual>
 
         <collision>
-            <origin xyz="-0.01 0.024 -0.08" rpy="${PI/2} 0.0 0.0"/>
+            <origin xyz="0.0105 -0.024 -0.06" rpy="${PI/2} 0.0 ${PI}"/>
             <geometry>
                 <mesh filename="package://agv/meshs/uwb.STL" scale="0.001 0.001 0.001"/>
             </geometry>
@@ -135,7 +135,7 @@
     <joint name="uwb_tag_joint" type="fixed">
         <parent link="base_link"/>
         <child link="uwb_link"/>
-        <origin xyz="-0.105 0.0 0.18" rpy="0.0 0.0 0.0"/>
+        <origin xyz="0.0 0.0 0.23" rpy="0.0 0.0 0.0"/>
     </joint>
     <!-- End UWB -->
     

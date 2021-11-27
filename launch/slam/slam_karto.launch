@@ -7,7 +7,7 @@
         
     <group ns="agv">
         <node name="odom_pub" pkg="agv" type="odometry.py"/>
-        <node name="scan_matcher_pub" pkg="laser_scan_matcher" type="laser_scan_matcher_node" output="screen">
+        <!-- <node name="scan_matcher_pub" pkg="laser_scan_matcher" type="laser_scan_matcher_node" output="screen">
             <param name="fixed_frame" value = "odom"/>
             <param name="base_frame" value="base_footprint"/>
             <param name="use_alpha_beta" value="true"/>
@@ -18,7 +18,7 @@
             <param name="publish_pose" value="true"/>
             <param name="publish_pose_stamped" value="false"/>
             <param name="max_iterations" value="10"/>
-        </node>
+        </node> -->
         <node name="slam_karto_pub" pkg="slam_karto" type="slam_karto" output="screen">
             <rosparam command="load" file="$(find agv)/config/karto_params.yaml"/>
         </node>
