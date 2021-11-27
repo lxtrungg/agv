@@ -1,6 +1,6 @@
 image: /home/lattepanda/catkin_ws/src/agv/maps/map1.pgm
 resolution: 0.025000
-origin: [-1.663535, -2.492695, 0.000000]
+origin: [-1.747982, -2.547932, 0.000000]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196
