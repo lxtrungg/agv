@@ -122,7 +122,7 @@ def calculate_rmse(a, b, isUWB=False, isIMU=False):
     yaw_rmse = np.sqrt(np.square(diff).mean())
     return x_rmse, y_rmse, yaw_rmse
 
-def plot():
+def show_plot():
     plt.figure(figsize=(18, 8))
     plt.subplot(121)
     plt.title('X-Y Graph')
@@ -199,7 +199,8 @@ def main():
             # print('RMSE EnKF:' + str(calculate_rmse(x_EnKF, x_True)))
             # print('RMSE UKF :' + str(calculate_rmse(x_UKF, x_True)))
             rospy.loginfo('Show plot')
-            plot()
+            show_plot()
+            break
         
         rate.sleep()
 
