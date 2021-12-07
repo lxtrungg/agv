@@ -107,6 +107,7 @@ def main():
     cnt = 0
     step = 0
     rate = rospy.Rate(50)
+    is_move_done = False
     while not rospy.is_shutdown():
         if vel['v'] == 0 and vel['w'] == 0:
             if cnt <= 100:
@@ -117,8 +118,9 @@ def main():
                 # step = move_num(step)
                 # step = move_circle()
                 
-                if step == 10:
+                if step == 10 and not is_move_done:
                     debug_pub.publish(Bool(True))
+                    is_move_done = True
         else:
             cnt = 0
 
