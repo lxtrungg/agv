@@ -19,6 +19,7 @@ x_True = shape
 x_EKF = shape
 x_EnKF = shape
 x_UKF = shape
+x_TEST = shape
 th_IMU = []
 move_done = False
 
@@ -77,6 +78,16 @@ def subscriber_odom_ukf_callback(odom_data):
     pose = np.array([[x], [y], [yaw]])
     x_UKF = np.hstack((x_UKF, pose))
 
+def subscriber_odom_test_callback(odom_data):
+    global x_TEST
+    x = odom_data.pose.pose.position.x
+    y = odom_data.pose.pose.position.y
+    yaw = odom_data.pose.pose.position.z
+    # rot = odom_data.pose.pose.orientation
+    # yaw = PyKDL.Rotation.Quaternion(rot.x, rot.y, rot.z, rot.w).GetRPY()[2]
+    pose = np.array([[x], [y], [yaw]])
+    x_TEST = np.hstack((x_TEST, pose))
+
 def subscriber_imu_callback(imu_data):
     global th_IMU
     th_IMU = np.hstack((th_IMU, imu_data.z))
@@ -131,20 +142,21 @@ def show_plot():
     plt.axis('equal')
     plt.grid('-')
     linewidth = 1.3
+    marksize = 10
 
-    plt.plot(x_UWB[0, 1:].flatten(), x_UWB[1, 1:].flatten(), '*g', linewidth = linewidth, label = 'xy_UWB')
+    plt.scatter(x_UWB[0, 1:].flatten(), x_UWB[1, 1:].flatten(), marker='*', s=marksize, c='g', label='xy_UWB')
 
-    plt.plot(x_DR[0, 1:].flatten(), x_DR[1, 1:].flatten(), '*y', linewidth = linewidth, label = 'xy_DR')
+    plt.scatter(x_DR[0, 1:].flatten(), x_DR[1, 1:].flatten(), marker=',', s=marksize, c='y', label='xy_DR')
 
-    plt.plot(x_True[0, 1:].flatten(), x_True[1, 1:].flatten(), '*r', linewidth = linewidth, label = 'xy_True')
+    plt.scatter(x_True[0, 1:].flatten(), x_True[1, 1:].flatten(), marker='.', s=marksize, c='r', label='xy_True')
 
-    plt.plot(x_AMCL[0, 1:].flatten(), x_AMCL[1, 1:].flatten(), 'oc', linewidth = linewidth, label = 'xy_AMCL')
+    plt.scatter(x_TEST[0, 1:].flatten(), x_TEST[1, 1:].flatten(), marker='+', s=marksize, c='c', label='xy_HIEN')
 
-    plt.plot(x_EKF[0, 1:].flatten(), x_EKF[1, 1:].flatten(), 'om', linewidth = linewidth, label = 'xy_EKF')
+    plt.scatter(x_EKF[0, 1:].flatten(), x_EKF[1, 1:].flatten(), marker='o', s=marksize, c='m', label='xy_EKF')
 
-    # plt.plot(x_EnKF[0, 1:].flatten(), x_EnKF[1, 1:].flatten(), '-k', linewidth = linewidth, label = 'xy_EnKF')
+    plt.scatter(x_EnKF[0, 1:].flatten(), x_EnKF[1, 1:].flatten(), marker='v', s=marksize, c='k', label = 'xy_EnKF')
 
-    # plt.plot(x_UKF[0, 1:].flatten(), x_UKF[1, 1:].flatten(), '-b', linewidth = linewidth, label = 'xy_UKF')
+    plt.scatter(x_UKF[0, 1:].flatten(), x_UKF[1, 1:].flatten(), marker='x', s=marksize, c='b', label = 'xy_UKF')
 
     plt.legend(loc='upper right')
     
@@ -157,10 +169,10 @@ def show_plot():
     
     plt.plot(np.rad2deg(th_IMU), '-g', linewidth = linewidth, label='yaw_IMU')
     plt.plot(np.rad2deg(x_DR[2, 1:].flatten()), '-y', linewidth = linewidth, label='yaw_DR')
-    # plt.plot(np.rad2deg(x_True[2, 1:].flatten()), '-r', linewidth = linewidth, label='yaw_True')
+    plt.plot(np.rad2deg(x_TEST[2, 1:].flatten()), '-c', linewidth = linewidth, label='yaw_HIEN')
     plt.plot(np.rad2deg(x_EKF[2, 1:].flatten()), '-m', linewidth = linewidth, label='yaw_EKF')
-    # plt.plot(np.rad2deg(x_EnKF[2, 1:].flatten()), '-k', linewidth = linewidth, label='yaw_EnKF')
-    # plt.plot(np.rad2deg(x_UKF[2, 1:].flatten()), '-b', linewidth = linewidth, label='yaw_UKF')
+    plt.plot(np.rad2deg(x_EnKF[2, 1:].flatten()), '-k', linewidth = linewidth, label='yaw_EnKF')
+    plt.plot(np.rad2deg(x_UKF[2, 1:].flatten()), '-b', linewidth = linewidth, label='yaw_UKF')
     plt.legend(loc='upper right')
     plt.show()
 
@@ -170,8 +182,9 @@ def main():
     rospy.Subscriber('/agv/amcl_pose', PoseWithCovarianceStamped, subscriber_amcl_callback)
     rospy.Subscriber('/agv/odom', Odometry, subscriber_odom_callback)
     rospy.Subscriber('/agv/odom_ekf', Odometry, subscriber_odom_ekf_callback)
-    # rospy.Subscriber('/my_robot/odom_enkf', Odometry, subscriber_odom_enkf_callback)
-    # rospy.Subscriber('/my_robot/odom_ukf', Odometry, subscriber_odom_ukf_callback)
+    rospy.Subscriber('/agv/odom_enkf', Odometry, subscriber_odom_enkf_callback)
+    rospy.Subscriber('/agv/odom_ukf', Odometry, subscriber_odom_ukf_callback)
+    rospy.Subscriber('/agv/odom_test', Odometry, subscriber_odom_test_callback)
     # rospy.Subscriber('/my_robot/imu/rpy/filtered', Vector3Stamped, subscriber_imu_callback)
     rospy.Subscriber('/agv/imu_fake', Vector3, subscriber_imu_callback)
     rospy.Subscriber('/agv/vel_pub', Twist, subscriber_vel_callback)

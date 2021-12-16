@@ -10,13 +10,14 @@ from localizer_dwm1001.msg import Tag
 import tf
 import numpy as np
 from numpy import sin, cos, deg2rad
-from filter.fusionEKF import FusionEKF
+from filter.fusionUKF import FusionUKF
+from filter.sigma_points import SigmaPoints
 
 pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
 vel =  {'v': 0.0, 'w': 0.0}
 allow_initialpose_pub = False
 uwb_done = False
-ekf_done = False
+ukf_done = False
 first_scan = False
 sub_data = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
 
@@ -52,21 +53,9 @@ def publisher_initialpose(position, rotation):
     initialpose_pub.publish(initialpose)
 
 def subscriber_uwb_callback(uwb_data):
-    global sub_data, uwb_done, previous_time, ekf_done
+    global sub_data, uwb_done
     sub_data['x'] = uwb_data.x
     sub_data['y'] = uwb_data.y
-    # global x_posterior, P_posterior
-    # current_time = rospy.Time.now()
-    # dt = (current_time - previous_time).to_sec()
-    # previous_time = current_time
-    # u = np.array([[vel['v']], [vel['w']]])
-    # z = np.array([[sub_data['x']], [sub_data['y']]])
-    # x_posterior, P_posterior = ekf_uwb.predict_update(x_posterior, P_posterior, z, u, dt)
-    # pose['x']   = x_posterior[0,0]
-    # pose['y']   = x_posterior[1,0]
-    # pose['yaw'] = x_posterior[2,0]
-    # ekf_done = True
-    # compute_ekf_localization(mode='UWB')
     uwb_done = True
 
 def subscriber_vel_callback(vel_data):
@@ -75,20 +64,9 @@ def subscriber_vel_callback(vel_data):
     vel['w'] = vel_data.angular.z
 
 def subscriber_imu_callback(imu_data):
-    global sub_data, previous_time, ekf_done
+    global sub_data
     sub_data['yaw'] = imu_data.z
-    # global x_posterior, P_posterior
-    # current_time = rospy.Time.now()
-    # dt = (current_time - previous_time).to_sec()
-    # previous_time = current_time
-    # z = np.array([sub_data['yaw']])
-    # u = np.array([[vel['v']], [vel['w']]])
-    # x_posterior, P_posterior = ekf_imu.predict_update(x_posterior, P_posterior, z, u, dt)
-    # pose['x']   = x_posterior[0,0]
-    # pose['y']   = x_posterior[1,0]
-    # pose['yaw'] = x_posterior[2,0]
-    # ekf_done = True
-    # compute_ekf_localization(mode='IMU')
+    # compute_ukf_localization()
 
 def subcriber_amcl_callback(amcl_data):
     global allow_initialpose_pub
@@ -99,8 +77,8 @@ def subcriber_amcl_callback(amcl_data):
     if abs(x - pose['x']) > 0.03 or abs(y - pose['y']) > 0.03 or abs(yaw - pose['yaw']) > np.deg2rad(1):
         allow_initialpose_pub = True
 
-def compute_ekf_localization():
-    global previous_time, first_scan, pose, uwb_done, ekf_done
+def compute_ukf_localization():
+    global previous_time, first_scan, pose, uwb_done, ukf_done
     global x_posterior, P_posterior
     current_time = rospy.Time.now()
     dt = (current_time - previous_time).to_sec()
@@ -110,38 +88,31 @@ def compute_ekf_localization():
     #     if not imu_done:
     #         return
     #     first_scan = True
-    #     ekf_all.x = np.array([[uwb_data.x], [uwb_data.y], [imu_data_yaw]])
+    #     ukf_all.x = np.array([uwb_data.x, uwb_data.y, imu_data_yaw])
     #     return
 
-    u = np.array([[vel['v']], [vel['w']]])
+    u = np.array([vel['v'], vel['w']])
     if not uwb_done:
         z = np.array([sub_data['yaw']])
-        x_posterior, P_posterior = ekf_imu.predict_update(x_posterior, P_posterior, z, u, dt)
+        ukf_imu.compute_process_sigmas(x_posterior, P_posterior, u, dt)
+        x_posterior, P_posterior = ukf_imu.predict_update(z)
     else:
-        z = np.array([[sub_data['x']], [sub_data['y']], [sub_data['yaw']]])
-        x_posterior, P_posterior = ekf_all.predict_update(x_posterior, P_posterior, z, u, dt)
+        z = np.array([sub_data['x'], sub_data['y'], sub_data['yaw']])
+        ukf_all.compute_process_sigmas(x_posterior, P_posterior, u, dt)
+        x_posterior, P_posterior = ukf_all.predict_update(z)
         uwb_done = False
-    # if mode == 'IMU':
-    #     z = np.array([sub_data['yaw']])
-    #     x_posterior, P_posterior = ekf_imu.predict_update(x_posterior, P_posterior, z, u, dt)
-    # else:
-    #     # z = np.array([[sub_data['x']], [sub_data['y']], [sub_data['yaw']]])
-    #     # x_posterior, P_posterior = ekf_all.predict_update(x_posterior, P_posterior, z, u, dt)
-    #     z = np.array([[sub_data['x']], [sub_data['y']]])
-    #     x_posterior, P_posterior = ekf_uwb.predict_update(x_posterior, P_posterior, z, u, dt)
-        # uwb_done = False
 
-    pose['x']   = x_posterior[0,0]
-    pose['y']   = x_posterior[1,0]
-    pose['yaw'] = x_posterior[2,0]
-    ekf_done = True
+    pose['x']   = x_posterior[0]
+    pose['y']   = x_posterior[1]
+    pose['yaw'] = x_posterior[2]
+    ukf_done = True
 
 def main():
-    rospy.init_node('node_ekf_localization')
+    rospy.init_node('node_ukf_localization')
     global odom_pub, initialpose_pub, odom_broadcaster
     global allow_initialpose_pub, vel
 
-    odom_pub = rospy.Publisher('/agv/odom_ekf', Odometry, queue_size=10)
+    odom_pub = rospy.Publisher('/agv/odom_ukf', Odometry, queue_size=10)
     initialpose_pub = rospy.Publisher('/agv/initialpose', PoseWithCovarianceStamped, queue_size=10)
     odom_broadcaster = tf.TransformBroadcaster()
 
@@ -153,11 +124,11 @@ def main():
     global previous_time
     previous_time = rospy.Time.now()
 
-    rospy.loginfo('Start node ekf_localization')
+    rospy.loginfo('Start node ukf_localization')
     rate = rospy.Rate(50)
     while not rospy.is_shutdown():
-        compute_ekf_localization()
-        if ekf_done:
+        compute_ukf_localization()
+        if ukf_done:
             position = (pose['x'], pose['y'], pose['yaw'])
             rotation = PyKDL.Rotation.RPY(0, 0, pose['yaw']).GetQuaternion()
             publish_odometry(position, rotation)
@@ -173,27 +144,26 @@ if __name__ =='__main__':
     std_x = 0.28
     std_y = 0.28
     std_theta = deg2rad(1)
-    std_v = 0.02
-    std_w = 0.02
     P = np.diag([.1, .1, .01])
-    Q = np.diag([std_v, std_w])**2
+    Q = np.diag([.01, .01, .02])**2
 
+    points = SigmaPoints(dim_x=dim_x, alpha=.00001, beta=2, kappa=0)
     #IMU
-    ekf_imu = FusionEKF(dim_x=dim_x, dim_z=1)
-    ekf_imu.Q = Q
-    ekf_imu.R = np.diag([std_theta])**2
+    ukf_imu = FusionUKF(dim_x=dim_x, dim_z=1, points=points)
+    ukf_imu.Q = Q
+    ukf_imu.R = np.diag([std_theta])**2
 
     #UWB
-    ekf_uwb = FusionEKF(dim_x=dim_x, dim_z=2)
-    ekf_uwb.Q = Q
-    ekf_uwb.R = np.diag([std_x, std_y])**2
+    ukf_uwb = FusionUKF(dim_x=dim_x, dim_z=2, points=points)
+    ukf_uwb.Q = Q
+    ukf_uwb.R = np.diag([std_x, std_y])**2
     
     #UWB+IMU
-    ekf_all = FusionEKF(dim_x=dim_x, dim_z=3)
-    ekf_all.Q = Q
-    ekf_all.R = np.diag([std_x, std_y, std_theta])**2
+    ukf_all = FusionUKF(dim_x=dim_x, dim_z=3, points=points)
+    ukf_all.Q = Q
+    ukf_all.R = np.diag([std_x, std_y, std_theta])**2
 
-    x_posterior = np.array([[pose['x'], pose['y'], pose['yaw']]]).T
+    x_posterior = np.zeros(dim_x)
     P_posterior = P
 
     main()

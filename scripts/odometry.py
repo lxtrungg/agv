@@ -10,7 +10,7 @@ import PyKDL
 from numpy import sin, cos, deg2rad
 from math import atan2
 
-vel = {'v': 0.0 , 'w': 0.0}
+vel  = {'v': 0.0, 'w': 0.0}
 pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
 allow_initialpose_pub = False
 imu_done = False
@@ -91,7 +91,7 @@ def main():
             start_imu_pub.publish(Bool(True))
         if vel_done and imu_done:
             pose = dead_reckoning(pose)
-            rospy.loginfo(pose)
+            print(pose)
             position = (pose['x'], pose['y'], 0)
             rotation = PyKDL.Rotation.RPY(0, 0, pose['yaw']).GetQuaternion()
             publish_odometry(position, rotation)

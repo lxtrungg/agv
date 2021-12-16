@@ -1,4 +1,4 @@
-image: /home/lattepanda/catkin_ws/src/agv/maps/map1.pgm
+image: /home/ubuntu/catkin_ws/src/agv/maps/map1.pgm
 resolution: 0.025000
 origin: [-1.747982, -2.547932, 0.000000]
 negate: 0

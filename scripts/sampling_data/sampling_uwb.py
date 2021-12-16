@@ -5,16 +5,11 @@ from localizer_dwm1001.msg import Tag
 from geometry_msgs.msg import Twist
 import numpy as np
 import matplotlib.pyplot as plt
-import random
 data = {'x': [], 'y': []}
 plot_done = False
 def subscriber_uwb_callback(uwb_data):
-    # data['x'].append(uwb_data.x)
-    # data['y'].append(uwb_data.y)
-    x = random.uniform(0.0, 0.1)
-    y = random.uniform(0.0, 0.1)
-    data['x'].append(x)
-    data['y'].append(y)
+    data['x'].append(uwb_data.x)
+    data['y'].append(uwb_data.y)
 
 def show_plot(event):
     x_mean = np.mean(data['x'])
@@ -25,8 +20,8 @@ def show_plot(event):
     rospy.loginfo('x_std: ' + str(x_std))
     rospy.loginfo('y_mean: ' + str(y_mean))
     rospy.loginfo('y_std: ' + str(y_std))
-    plt.figure(figsize=(18,8))
-    plt.subplot(121)
+    plt.figure(figsize=(18,12))
+    plt.subplot(221)
     plt.title('Sampling UWB data')
     plt.xlabel('Sample (n)')
     plt.ylabel('Value (m)')
@@ -37,33 +32,49 @@ def show_plot(event):
     plt.plot(data['y'], '-g', linewidth=_linewidth, label='UWB_Y')
     plt.legend(loc='upper right')
     
-    plt.subplot(122)
+    plt.subplot(222)
     plt.title('Position UWB data')
     plt.xlabel('x (m)')
     plt.ylabel('y (m)')
     plt.grid('-')
     
-    plt.scatter(0, 0, label='XY_ROBOT')
+    # plt.scatter(0.0, 0.0, label='XY_ROBOT')
+    plt.scatter(1.2, 1.2, label='XY_ROBOT')
     plt.scatter(data['x'], data['y'], label='XY_UWB')
     plt.scatter(x_mean, y_mean, label='XY_MEAN')
-    # n, bins, patches = plt.hist(data['x'], bins=20, density=False, histtype='bar', rwidth=0.7, color='blue', alpha=0.4)
+    plt.annotate(s='(%.3f, %.3f)' % (x_mean, y_mean), xy=(x_mean, y_mean), ha='center', textcoords='offset points', xytext=(0, 10))
     plt.legend(loc='upper right')
-    rospy.loginfo('Show plot')
-    plt.show()
+
+    plt.subplot(223)
+    plt.title('Historigram X')
+    plt.xlabel('x (m)')
+    plt.ylabel('Sample (n')
+    plt.grid('-')
+    
+    n, bins, patches = plt.hist(data['x'], bins=10, density=False, histtype='bar', rwidth=0.7, color='blue', alpha=0.4)
+
+    plt.subplot(224)
+    plt.title('Historigram Y')
+    plt.xlabel('y (m)')
+    plt.ylabel('Sample (n')
+    plt.grid('-')
+    
+    n, bins, patches = plt.hist(data['y'], bins=10, density=False, histtype='bar', rwidth=0.7, color='blue', alpha=0.4)
+
     plot_done = True
+    plt.show()
     
 def main():
     rospy.init_node('node_sampling_uwb')
     rospy.Subscriber('/agv/uwb/tag', Tag, subscriber_uwb_callback)
     rospy.loginfo('Sampling UWB data...')
     previous_time = rospy.Time.now()
-    rospy.Timer(rospy.Duration(5), show_plot, oneshot=False)
+    rospy.Timer(rospy.Duration(600), show_plot, oneshot=True)
     rate = rospy.Rate(100)
     while not rospy.is_shutdown():
         if plot_done:
             break
         rate.sleep()
-    # rospy.spin()
 
 if __name__=='__main__':
     main()

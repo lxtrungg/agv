@@ -77,6 +77,7 @@ class FusionEKF(object):
         # P = (I-KH)P usually seen in the literature.
         I_KH = I - self.K @ H
         self.P = I_KH @ P @ I_KH.T + self.K @ R @ self.K.T
+        # self.P = (I_KH) @ P
         
         return self.x, self.P
 

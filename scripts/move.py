@@ -106,11 +106,12 @@ def main():
     rospy.Subscriber('/agv/cmd_vel', Twist, subcriber_vel_callback)
     cnt = 0
     step = 0
-    rate = rospy.Rate(50)
+    cnt_loop = 0
+    rate = rospy.Rate(20)
     is_move_done = False
     while not rospy.is_shutdown():
         if vel['v'] == 0 and vel['w'] == 0:
-            if cnt <= 100:
+            if cnt <= 50:
                 cnt += 1
             else:
                 cnt = 0
@@ -119,8 +120,12 @@ def main():
                 # step = move_circle()
                 
                 if step == 10 and not is_move_done:
-                    debug_pub.publish(Bool(True))
-                    is_move_done = True
+                    step = 0
+                    cnt_loop += 1
+                    if cnt_loop == 1:
+                        debug_pub.publish(Bool(True))
+                        is_move_done = True
+                        break
         else:
             cnt = 0
 
