@@ -29,13 +29,6 @@ R_UWB              = np.diag([0.28, 0.28]) ** 2  # Observation x,y position cova
 class EKF_Publisher:
     def __init__(self):
         rospy.init_node('Node_EKF_Publisher', anonymous=True)
-        #Pub
-        self.odom_pub               = rospy.Publisher('/agv/odom_test', Odometry, queue_size= 50)
-        self.odom_broadcaster_tf    = tf.TransformBroadcaster()
-        #Sub
-        rospy.Subscriber('/agv/vel_pub',      Twist,      self.vel_callback)
-        rospy.Subscriber('/agv/uwb/tag',       Tag,      self.uwb_sub_callback)
-        rospy.Subscriber('/agv/imu_fake',   Vector3,    self.rpyFilter_callback)
 
         self.frame_id = rospy.get_param('~frame_id','/odom')    
         self.child_frame_id = rospy.get_param('~child_frame_id','/base_footprint')
@@ -48,13 +41,16 @@ class EKF_Publisher:
         self.PEst = np.eye(3)*10 
         self.xEst = np.zeros((3, 1))
 
-        self.pose    = {'x': 0.0, 'y': 0.0, 'th': 0.0}
-        self.posexDR = {'x': 0.0, 'y': 0.0, 'th': 0.0}
+        # self.pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
+        # self.pose = {'x': 0.0, 'y': 0.5, 'yaw': 0.0}
+        self.pose = {'x': 0.0, 'y': 0.8, 'yaw': 0.0}
+        # self.pose = {'x': 0.0, 'y': 1.2, 'yaw': 0.0}
+        # self.pose = {'x': 0.9, 'y': 0.85, 'yaw': 0.0}
         
         #pre-updte
         self.xEst[0,0] = self.pose['x']
         self.xEst[1,0] = self.pose['y']
-        self.xEst[2,0] = self.pose['th']
+        self.xEst[2,0] = self.pose['yaw']
 
         self.ready = False
         self.yaw_imu = 0.0
@@ -68,6 +64,16 @@ class EKF_Publisher:
         self.uwb_msg = 0
         self.yaw = 0
         self.uwb_done = False
+        self.imu_done = False
+        self.vel_done = False
+        
+        #Pub
+        self.odom_pub               = rospy.Publisher('/agv/odom_test', Odometry, queue_size= 50)
+        self.odom_broadcaster_tf    = tf.TransformBroadcaster()
+        #Sub
+        rospy.Subscriber('/agv/vel_pub',      Twist,      self.vel_callback)
+        rospy.Subscriber('/agv/uwb/tag',       Tag,      self.uwb_sub_callback)
+        rospy.Subscriber('/agv/imu_fake',   Vector3,    self.rpyFilter_callback)
         
     def update(self):
         if self.ready == True:
@@ -82,14 +88,15 @@ class EKF_Publisher:
         odom_msg.header.frame_id = self.frame_id        #"odom"
         odom_msg.child_frame_id = self.child_frame_id   #"base_footprint"
         # set the position
-        odom_msg.pose.pose.position = Point(pose['x'], pose['y'], pose['th'])
-        odom_msg.pose.pose.orientation = Quaternion(*tf.transformations.quaternion_from_euler(0,0,pose['th']))
+        odom_msg.pose.pose.position = Point(pose['x'], pose['y'], pose['yaw'])
+        odom_msg.pose.pose.orientation = Quaternion(*tf.transformations.quaternion_from_euler(0,0,pose['yaw']))
         # set the velocity
         odom_msg.twist.twist = Twist(Vector3(self.vel['v'], 0, 0), Vector3(0, 0, self.vel['w']))
          # publish the message
         self.odom_pub.publish(odom_msg)
 
     def vel_callback(self,vel_msg):
+        self.vel_done = True
         self.vel['v'] = vel_msg.linear.x    # v robot (m/s)
         self.vel['w'] = vel_msg.angular.z   # w robot (rad/s)
     
@@ -107,10 +114,10 @@ class EKF_Publisher:
         # # Update to Odometry
         # self.pose['x'] = self.xEst[0,0]
         # self.pose['y'] = self.xEst[1,0]
-        # self.pose['th'] = self.xEst[2,0]
+        # self.pose['yaw'] = self.xEst[2,0]
         #
         self.ready = True   
-
+        self.imu_done = True
         self.yaw = yaw_msg.z
 
     def uwb_sub_callback(self, uwb_msg):
@@ -122,13 +129,14 @@ class EKF_Publisher:
         # # Update to Odometry
         # self.pose['x'] = self.xEst[0,0]
         # self.pose['y'] = self.xEst[1,0]
-        # self.pose['th'] = self.xEst[2,0]
+        # self.pose['yaw'] = self.xEst[2,0]
         #
         self.ready = True
         self.uwb_msg = uwb_msg
         self.uwb_done = True
     
     def compute_ekf_localization(self):
+        self.current_time = rospy.Time.now()
         u = np.array([[self.vel['v']], [self.vel['w']]])
         if not self.uwb_done:
             z = np.array([self.yaw])
@@ -140,16 +148,19 @@ class EKF_Publisher:
             
         self.pose['x'] = self.xEst[0,0]
         self.pose['y'] = self.xEst[1,0]
-        self.pose['th'] = self.xEst[2,0]
-
+        self.pose['yaw'] = self.xEst[2,0]
+        
+        self.process_time = (rospy.Time.now() - self.current_time).to_sec()*1000.0
 
     def spin(self): #ok
         rospy.loginfo("[ROS][hiennd] Start NodeEKF_Publisher")
         rate = rospy.Rate(50)   
         while not rospy.is_shutdown():
-            self.compute_ekf_localization()
-            self.update()           
-            print(self.pose) 
+            if self.vel_done and self.imu_done:
+                self.compute_ekf_localization()
+                self.update()           
+                print(self.pose) 
+                print(self.process_time)
             rate.sleep()
     #------------------------------------
     #----------------EKF (UWB) (asyn)----------------

@@ -10,8 +10,12 @@ import PyKDL
 from numpy import sin, cos, deg2rad
 from math import atan2
 
+# pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
+# pose = {'x': 0.0, 'y': 0.5, 'yaw': 0.0}
+pose = {'x': 0.0, 'y': 0.8, 'yaw': 0.0}
+# pose = {'x': 0.0, 'y': 1.2, 'yaw': 0.0}
+# pose = {'x': 0.9, 'y': 0.85, 'yaw': 0.0}
 vel  = {'v': 0.0, 'w': 0.0}
-pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
 allow_initialpose_pub = False
 imu_done = False
 vel_done = False
@@ -60,8 +64,8 @@ def subscriber_imu_callback(imu_data):
     imu_done = True
     imu_yaw = imu_data.z
 
-def dead_reckoning(pose):
-    global previous_time
+def compute_dead_reckoning():
+    global previous_time, pose
     current_time = rospy.Time.now()
     dt = (current_time - previous_time).to_sec()
     previous_time = current_time
@@ -73,10 +77,9 @@ def dead_reckoning(pose):
     pose['y'] += vel['v']*dt*sin(imu_yaw)
     pose['yaw'] = imu_yaw
     
-    return pose
-
 def main():
     global odom_pub, init_pose_pub, br, previous_time, pose
+
     rospy.init_node('node_odom')
     odom_pub = rospy.Publisher('/agv/odom', Odometry, queue_size=10)
     start_imu_pub = rospy.Publisher('/agv/start_imu', Bool, queue_size=10)
@@ -84,18 +87,19 @@ def main():
     rospy.Subscriber('/agv/vel_pub', Twist, subscriber_vel_callback)
     rospy.Subscriber('/agv/imu/rpy', Vector3, subscriber_imu_callback)
     br = tf.TransformBroadcaster()
-    rate = rospy.Rate(50)
+    rate = rospy.Rate(10)
     previous_time = rospy.Time.now()
+    rospy.loginfo('Start node odom_localization')
     while not rospy.is_shutdown():
-        if not imu_done:
-            start_imu_pub.publish(Bool(True))
+        # if not imu_done:
+        #     start_imu_pub.publish(Bool(True))
         if vel_done and imu_done:
-            pose = dead_reckoning(pose)
-            print(pose)
+            compute_dead_reckoning()
             position = (pose['x'], pose['y'], 0)
             rotation = PyKDL.Rotation.RPY(0, 0, pose['yaw']).GetQuaternion()
             publish_odometry(position, rotation)
-            transform_odometry(position, rotation)
+            # transform_odometry(position, rotation)
+            print(pose)
         rate.sleep()
 
 if __name__ == '__main__':

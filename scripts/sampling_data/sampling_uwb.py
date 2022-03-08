@@ -37,10 +37,13 @@ def show_plot(event):
     plt.xlabel('x (m)')
     plt.ylabel('y (m)')
     plt.grid('-')
-    
+    marksize = 10
+    x_true = 1.5
+    y_true = 1.15
     # plt.scatter(0.0, 0.0, label='XY_ROBOT')
-    plt.scatter(1.2, 1.2, label='XY_ROBOT')
-    plt.scatter(data['x'], data['y'], label='XY_UWB')
+    plt.scatter(x_true, y_true, label='XY_ROBOT')
+    plt.annotate(s='(%.3f, %.3f)' % (x_true, y_true), xy=(x_true, y_true), ha='center', textcoords='offset points', xytext=(0, 10))
+    plt.scatter(data['x'], data['y'], s=marksize, label='XY_UWB')
     plt.scatter(x_mean, y_mean, label='XY_MEAN')
     plt.annotate(s='(%.3f, %.3f)' % (x_mean, y_mean), xy=(x_mean, y_mean), ha='center', textcoords='offset points', xytext=(0, 10))
     plt.legend(loc='upper right')
@@ -69,7 +72,7 @@ def main():
     rospy.Subscriber('/agv/uwb/tag', Tag, subscriber_uwb_callback)
     rospy.loginfo('Sampling UWB data...')
     previous_time = rospy.Time.now()
-    rospy.Timer(rospy.Duration(600), show_plot, oneshot=True)
+    rospy.Timer(rospy.Duration(300), show_plot, oneshot=True)
     rate = rospy.Rate(100)
     while not rospy.is_shutdown():
         if plot_done:

@@ -13,13 +13,20 @@ from numpy import sin, cos, deg2rad
 from filter.fusionUKF import FusionUKF
 from filter.sigma_points import SigmaPoints
 
-pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
+# pose = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
+# pose = {'x': 0.0, 'y': 0.5, 'yaw': 0.0}
+pose = {'x': 0.0, 'y': 0.8, 'yaw': 0.0}
+# pose = {'x': 0.0, 'y': 1.2, 'yaw': 0.0}
+# pose = {'x': 0.9, 'y': 0.85, 'yaw': 0.0}
 vel =  {'v': 0.0, 'w': 0.0}
 allow_initialpose_pub = False
 uwb_done = False
+vel_done = False
+imu_done = False
 ukf_done = False
 first_scan = False
 sub_data = {'x': 0.0, 'y': 0.0, 'yaw': 0.0}
+process_time = 0
 
 def publish_odometry(position, rotation):
     odom = Odometry()
@@ -59,12 +66,14 @@ def subscriber_uwb_callback(uwb_data):
     uwb_done = True
 
 def subscriber_vel_callback(vel_data):
-    global vel
+    global vel, vel_done
+    vel_done = True
     vel['v'] = vel_data.linear.x
     vel['w'] = vel_data.angular.z
 
 def subscriber_imu_callback(imu_data):
-    global sub_data
+    global sub_data, imu_done
+    imu_done = True
     sub_data['yaw'] = imu_data.z
     # compute_ukf_localization()
 
@@ -78,7 +87,7 @@ def subcriber_amcl_callback(amcl_data):
         allow_initialpose_pub = True
 
 def compute_ukf_localization():
-    global previous_time, first_scan, pose, uwb_done, ukf_done
+    global previous_time, first_scan, pose, uwb_done, ukf_done, process_time
     global x_posterior, P_posterior
     current_time = rospy.Time.now()
     dt = (current_time - previous_time).to_sec()
@@ -107,11 +116,13 @@ def compute_ukf_localization():
     pose['yaw'] = x_posterior[2]
     ukf_done = True
 
+    process_time = (rospy.Time.now() - current_time).to_sec()*1000.0
+
 def main():
-    rospy.init_node('node_ukf_localization')
     global odom_pub, initialpose_pub, odom_broadcaster
     global allow_initialpose_pub, vel
 
+    rospy.init_node('node_ukf_localization')
     odom_pub = rospy.Publisher('/agv/odom_ukf', Odometry, queue_size=10)
     initialpose_pub = rospy.Publisher('/agv/initialpose', PoseWithCovarianceStamped, queue_size=10)
     odom_broadcaster = tf.TransformBroadcaster()
@@ -127,7 +138,8 @@ def main():
     rospy.loginfo('Start node ukf_localization')
     rate = rospy.Rate(50)
     while not rospy.is_shutdown():
-        compute_ukf_localization()
+        if vel_done and imu_done:
+            compute_ukf_localization()
         if ukf_done:
             position = (pose['x'], pose['y'], pose['yaw'])
             rotation = PyKDL.Rotation.RPY(0, 0, pose['yaw']).GetQuaternion()
@@ -137,6 +149,7 @@ def main():
             #     allow_initialpose_pub = False
                 # publisher_initialpose(position, rotation)
             print(pose)
+            print(process_time)
         rate.sleep()
     
 if __name__ =='__main__':
@@ -163,7 +176,7 @@ if __name__ =='__main__':
     ukf_all.Q = Q
     ukf_all.R = np.diag([std_x, std_y, std_theta])**2
 
-    x_posterior = np.zeros(dim_x)
+    x_posterior = np.array([pose['x'], pose['y'], pose['yaw']])
     P_posterior = P
 
     main()
